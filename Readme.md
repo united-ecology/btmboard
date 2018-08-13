@@ -1,5 +1,3 @@
-[schem]: https://github.com/united-ecology/btmboard/tree/master/Hardware/assembly-schematic.png "Assembly Schematic"
-
 # BtM Board 1.1
 
 This repository is associated with the following publication:
@@ -13,7 +11,7 @@ The hardware folder contains the KiCAD project files for the BtM PCB Board. See 
 
 ### Assembly schematic
 
-![Assembly Schematic][schem]
+![Assembly Schematic](Hardware/assembly-schematic.png)
 
 ### List of Components
 * BtMboard circuit (PCB)
