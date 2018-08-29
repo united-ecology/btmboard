@@ -3,7 +3,6 @@ LIBS:power
 LIBS:device
 LIBS:switches
 LIBS:relays
-LIBS:motors
 LIBS:transistors
 LIBS:conn
 LIBS:linear
@@ -257,17 +256,6 @@ F 2 "Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 6230 145
 F 3 "" H 6300 1450 50  0001 C CNN
 	1    6300 1450
 	-1   0    0    1   
-$EndComp
-$Comp
-L R R5
-U 1 1 59EA45D1
-P 6050 1150
-F 0 "R5" V 6130 1150 50  0000 C CNN
-F 1 "Musgo1" V 6050 1150 50  0000 C CNN
-F 2 "TerminalBlocks_Phoenix:TerminalBlock_Phoenix_MKDS1.5-2pol" V 5980 1150 50  0001 C CNN
-F 3 "" H 6050 1150 50  0001 C CNN
-	1    6050 1150
-	0    1    1    0   
 $EndComp
 Text GLabel 7300 1250 2    60   BiDi ~ 0
 A1_APM
@@ -1149,5 +1137,16 @@ F 2 "" H 4300 1100 50  0001 C CNN
 F 3 "" H 4300 1100 50  0001 C CNN
 	1    4300 1100
 	1    0    0    -1  
+$EndComp
+$Comp
+L R R5
+U 1 1 59EA45D1
+P 6050 1150
+F 0 "R5" V 6130 1150 50  0000 C CNN
+F 1 "Musgo1" V 6050 1150 50  0000 C CNN
+F 2 "TerminalBlocks_Phoenix:TerminalBlock_Phoenix_MKDS1.5-2pol" V 5980 1150 50  0001 C CNN
+F 3 "" H 6050 1150 50  0001 C CNN
+	1    6050 1150
+	0    1    1    0   
 $EndComp
 $EndSCHEMATC
