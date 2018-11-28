@@ -14,11 +14,11 @@
 // Constants
 #define POWA 4    // pin 4 supplies power to microSD card breakout and SHT15 sensor
 #define NREADS 5
-#define ANALOGMAX 7
+#define ANALOGMAX 8
 
 // Launch Variables   ******************************
 long interval = 5;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
-int dayStart = 24, hourStart = 18, minStart = 44;    // define logger start time: day of the month, hour, minute
+int dayStart = 27, hourStart = 16, minStart = 20;    // define logger start time: day of the month, hour, minute
 char filename[15] = "log.csv";    // Set filename Format: "12345678.123". Cannot be more than 8 characters in length, contain spaces or begin with a number
 
 // Global objects and variables   ******************************
@@ -30,7 +30,7 @@ int RValue = 330;
 
 PowerSaver chip;  	// declare object for PowerSaver class
 DS3234 RTC;         // declaTemp(C)re object for DS3234 class
-Sensirion sensor(SHT_clockPin, SHT_dataPin);  // declare object for SHT15 class
+Sensirion sensor(SHT_dataPin, SHT_clockPin);  // declare object for SHT15 class
 SdFat sd; 		    // declare object for SdFat class
 SdFile file;		// declare object for SdFile class
 
@@ -60,12 +60,9 @@ void setup()
     delay(10);
     file.open(filename, O_CREAT | O_APPEND | O_WRITE);  // open file in write mode and append data to the end of file
     delay(1);
-    String time = RTC.timeStamp();    // get date and time from RTC
-    file.println(time);
     file.println();
     file.print("Date/Time,Temp(C),RH(%),Dew Point(C), Impedance(ohm)");    // Print header to file
     file.println();
-    PrintFileTimeStamp();
     file.close();    // close file - very important
   }
 
@@ -104,14 +101,14 @@ void loop()
 
   RTC.checkDST(); // check and account for Daylight Savings Time in US
 
-  for (int a = 0; a < ANALOGMAX; i++)
+  for (int a = 0; a < ANALOGMAX; a++)
     for (int i = 0; i < NREADS; i++)
       analogRead(a);  // first few readings from ADC may not be accurate, so they're cleared out here
   delay(1);
 
   // Medida Musgos
   float RMoss[8];
-  for (int a = 0; a < ANALOGMAX; i++){
+  for (int a = 0; a < ANALOGMAX; a++){
     float adcMoss = averageADC(a);
     RMoss[a] = mossImpedance(adcMoss, RValue);	//Reference resistor value
   }
@@ -134,10 +131,9 @@ void loop()
 
     String time = RTC.timeStamp();    // get date and time from RTC
     SPCR = 0;  // reset SPI control register
-
-    printDataEntry(RMoss);
-
-    PrintFileTimeStamp();
+    
+    file.println(time);
+    printDataEntry(RMoss,&temperature,&humidity,&dewPoint);
 
     file.close();    // close file - very important
   }
@@ -146,14 +142,13 @@ void loop()
 }
 
 void printDataEntry(float* RData, float* temperature, float* humidity, float* dewPoint){
-  file.print(time);
   file.print(",");
-  file.print(temperature, 3);  // print temperature upto 3 decimal places
+  file.print(*temperature, 3);  // print temperature upto 3 decimal places
   file.print(",");
-  file.print(humidity, 3);  // print humidity upto 3 decimal places
+  file.print(*humidity, 3);  // print humidity upto 3 decimal places
   file.print(",");
-  file.print(dewPoint);
-  for (int a = 0; a < ANALOGMAX; i++){
+  file.print(*dewPoint);
+  for (int a = 0; a < ANALOGMAX; a++){
     file.print(",");
     file.print(RData[a]);
   }
@@ -180,7 +175,7 @@ float mossImpedance(float adc, int R)
 }
 
 // file timestamps ****************************************************************
-void PrintFileTimeStamp() // Print timestamps to data file. Format: year, month, day, hour, min, sec
+void printFileTimeStamp() // Print timestamps to data file. Format: year, month, day, hour, min, sec
 {
   file.timestamp(T_WRITE, RTC.year, RTC.month, RTC.day, RTC.hour, RTC.minute, RTC.second);    // edit date modified
   file.timestamp(T_ACCESS, RTC.year, RTC.month, RTC.day, RTC.hour, RTC.minute, RTC.second);    // edit date accessed
