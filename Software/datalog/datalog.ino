@@ -15,10 +15,11 @@
 #define POWA 4    // pin 4 supplies power to microSD card breakout and SHT15 sensor
 #define NREADS 5
 #define ANALOGMAX 8
+#define PINON 7
 
 // Launch Variables   ******************************
 long interval = 5;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
-int dayStart = 27, hourStart = 16, minStart = 20;    // define logger start time: day of the month, hour, minute
+int dayStart = 13, hourStart = 18, minStart = 50;    // define logger start time: day of the month, hour, minute
 char filename[15] = "log.csv";    // Set filename Format: "12345678.123". Cannot be more than 8 characters in length, contain spaces or begin with a number
 
 // Global objects and variables   ******************************
@@ -77,6 +78,7 @@ void setup()
 void loop()
 {
   digitalWrite(POWA, LOW);  // turn off microSD card to save power
+  digitalWrite(PINON, LOW);
   delay(1);  // give some delay for SD card and RTC to be low before processor sleeps to avoid it being stuck
 
   chip.turnOffADC();    // turn off ADC to save power
@@ -97,18 +99,20 @@ void loop()
   RTC.alarmFlagClear();    // clear alarm flag
   pinMode(POWA, OUTPUT);
   digitalWrite(POWA, HIGH);  // turn on SD card power
+  
+  digitalWrite(PINON, HIGH);
   delay(1);    // give delay to let the SD card and SHT15 get full powa
 
   RTC.checkDST(); // check and account for Daylight Savings Time in US
 
-  for (int a = 0; a < ANALOGMAX; a++)
+  for (int a = A0; a < A0 + ANALOGMAX; a++)
     for (int i = 0; i < NREADS; i++)
       analogRead(a);  // first few readings from ADC may not be accurate, so they're cleared out here
   delay(1);
 
   // Medida Musgos
   float RMoss[8];
-  for (int a = 0; a < ANALOGMAX; a++){
+  for (int a = A0; a < A0 + ANALOGMAX; a++){
     float adcMoss = averageADC(a);
     RMoss[a] = mossImpedance(adcMoss, RValue);	//Reference resistor value
   }
