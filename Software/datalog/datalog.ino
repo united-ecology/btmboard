@@ -19,7 +19,7 @@
 
 // Launch Variables   ******************************
 long interval = 5;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
-int dayStart = 13, hourStart = 18, minStart = 50;    // define logger start time: day of the month, hour, minute
+int dayStart = 13, hourStart = 19, minStart = 31;    // define logger start time: day of the month, hour, minute
 char filename[15] = "log.csv";    // Set filename Format: "12345678.123". Cannot be more than 8 characters in length, contain spaces or begin with a number
 
 // Global objects and variables   ******************************
@@ -99,7 +99,7 @@ void loop()
   RTC.alarmFlagClear();    // clear alarm flag
   pinMode(POWA, OUTPUT);
   digitalWrite(POWA, HIGH);  // turn on SD card power
-  
+  delay(1);
   digitalWrite(PINON, HIGH);
   delay(1);    // give delay to let the SD card and SHT15 get full powa
 
@@ -112,10 +112,11 @@ void loop()
 
   // Medida Musgos
   float RMoss[8];
-  for (int a = A0; a < A0 + ANALOGMAX; a++){
-    float adcMoss = averageADC(a);
+  for (int a = 0; a < ANALOGMAX; a++){
+    float adcMoss = averageADC(A0+a);
     RMoss[a] = mossImpedance(adcMoss, RValue);	//Reference resistor value
   }
+
 
   float temperature;
   float humidity; 
@@ -135,9 +136,12 @@ void loop()
 
     String time = RTC.timeStamp();    // get date and time from RTC
     SPCR = 0;  // reset SPI control register
-    
-    file.println(time);
-    printDataEntry(RMoss,&temperature,&humidity,&dewPoint);
+    /*for (int a = A0; a < A0 + ANALOGMAX; a++){
+      Serial.print(RMoss[a]);
+      Serial.print(" ");
+    }
+    Serial.println();*/
+    printDataEntry(&time,&temperature,&humidity,&dewPoint,RMoss);
 
     file.close();    // close file - very important
   }
@@ -145,11 +149,12 @@ void loop()
   delay(1);
 }
 
-void printDataEntry(float* RData, float* temperature, float* humidity, float* dewPoint){
+void printDataEntry(String* time, float* temperature, float* humidity, float* dewPoint, float* RData){
+  file.print(*time);
   file.print(",");
-  file.print(*temperature, 3);  // print temperature upto 3 decimal places
+  file.print(*temperature);  // print temperature upto 3 decimal places
   file.print(",");
-  file.print(*humidity, 3);  // print humidity upto 3 decimal places
+  file.print(*humidity);  // print humidity upto 3 decimal places
   file.print(",");
   file.print(*dewPoint);
   for (int a = 0; a < ANALOGMAX; a++){
