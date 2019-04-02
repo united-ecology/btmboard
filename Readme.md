@@ -1,20 +1,22 @@
 # BtM Board 1.1
 
-This repository is associated with the following publication:
-BtM, a low-cost open-source data logger to estimate water content of non-vascular cryptogams.
-María Leo, Angel Lareo, Carlos García-Saura, Joaquín Hortal, Nagore G. Medina.
-
 This project is an Arduino based datalogger for monitoring moss conductance as well as environmental humidity and temperature. Up to eight moss and/or lichen samples can be logged in parallel using a single BtMboard.
+
+This repository is associated with the following publication: Leo, M., Lareo, A., Garcia-Saura, C., Hortal, J., Medina, N. G. BtM, a Low-cost Open-source Datalogger to Estimate the Water Content of Nonvascular Cryptogams. *J. Vis. Exp.* (145), e58700, [doi:10.3791/58700](https://doi.org/10.3791/58700) (2019).
+
+A video with further instructions on how to build the datalogger and use it can be found in the paper link: [BtM, a Low-cost Open-source Datalogger to Estimate the Water Content of Nonvascular Cryptogams](https://www.jove.com/video/58700/btm-low-cost-open-source-datalogger-to-estimate-water-content). Notice that version 1.0 was used in the recording, and it might slightly differ from the current version.
+
+Do not switch off the datalogger while measuring (LED light on). It can be switched off safely during the sleeping period (LED light off). 
 
 ## Sofware
 
-This software folder contains the source code needed to use the BtM datalogger. You will need the Arduino 1.6 IDE in order to use it.
+This software folder contains the source code needed to use the BtM datalogger. You will need the Arduino 1.0.6 IDE in order to use it (other versions may cause problems with the libraries) and make sure you choose the appropriate board (Pro Mini 328 3.3V).
 
-*Libraries* contains the libraries needed for the datalogger. Copy them to your local Arduino IDE installation in the /libraries folder.
+*Libraries* contains the libraries needed for the datalogger. Copy them to your local Arduino IDE installation in the `/libraries` folder.
 
-*Clock* contains a project to set up the current time and date.
+*Clock* contains a project to set up RTC clock. Check the data in `RTC.setDateTime(DD,MM,YY,hh,mm,ss);` match your local date and time before uploading it to the Arduino board.
 
-*Datalog* contains the main project used to log the data.
+*Datalog* contains the main project used to log the data. The sampling frequency can be controlled here by modifying `interval` (sleeping period in seconds). 
 
 ## Hardware
 The hardware folder contains the KiCAD project files for the BtM PCB Board. See the **List of Components** section for details about the hardware needed to assembly the board.
@@ -45,4 +47,5 @@ The hardware folder contains the KiCAD project files for the BtM PCB Board. See 
 * DS3234 RTC Breakout (clock)
 * CR1225 3V Coin-cell battery
 * MicroSD Transflash breakout
+
 

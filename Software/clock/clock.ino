@@ -19,7 +19,7 @@ void setup()
   RTC.configure(11,12,13,10); // for OSBSS datalogger 
   //RTC.configure(10,11,12,13); // for bare RTC on Arduino Pro Mini or Uno
   
-  RTC.setDateTime(24,5,18,18,20,0); // Format: DD/MM/YY hh:mm:ss
+  RTC.setDateTime(DD,MM,YY,hh,mm,ss); // Format: DD/MM/YY hh:mm:ss
 }
  
 void loop()
