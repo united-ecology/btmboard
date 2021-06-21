@@ -18,8 +18,8 @@
 #define PINON 7
 
 // Launch Variables   ******************************
-long interval = 5;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
-int dayStart = 13, hourStart = 19, minStart = 31;    // define logger start time: day of the month, hour, minute
+long interval = I;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
+int dayStart = D, hourStart = H, minStart = m;    // define logger start time: day of the month, hour, minute
 char filename[15] = "log.csv";    // Set filename Format: "12345678.123". Cannot be more than 8 characters in length, contain spaces or begin with a number
 
 // Global objects and variables   ******************************
@@ -136,11 +136,11 @@ void loop()
 
     String time = RTC.timeStamp();    // get date and time from RTC
     SPCR = 0;  // reset SPI control register
-    /*for (int a = A0; a < A0 + ANALOGMAX; a++){
+    for (int a = 0; a < ANALOGMAX; a++){
       Serial.print(RMoss[a]);
       Serial.print(" ");
     }
-    Serial.println();*/
+    Serial.println();
     printDataEntry(&time,&temperature,&humidity,&dewPoint,RMoss);
 
     file.close();    // close file - very important
