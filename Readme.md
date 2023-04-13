@@ -1,4 +1,4 @@
-# BtM Board 1.1
+# BtM Board 1.2
 
 This project is an Arduino based datalogger for monitoring moss conductance as well as environmental humidity and temperature. Up to eight moss and/or lichen samples can be logged in parallel using a single BtMboard.
 
@@ -43,7 +43,7 @@ The hardware folder contains the KiCAD project files for the BtM PCB Board. See 
 * 2N3904 Transistor
 * 9 x Bornier connectors, 2x1 5.08 mm
 * Batteries and battery holder with switch
-* Sensirion SHT71
+* Sensirion SHT85
 * DS3234 RTC Breakout (clock)
 * CR1225 3V Coin-cell battery
 * MicroSD Transflash breakout
