@@ -1,0 +1,7 @@
+(sym_lib_table
+  (lib (name "BtMusgo-rescue")(type "KiCad")(uri "${KIPRJMOD}/BtMusgo-rescue.kicad_sym")(options "")(descr ""))
+  (lib (name "mysensors_arduino")(type "KiCad")(uri "${KIPRJMOD}/lib/mysensors_arduino.kicad_sym")(options "")(descr ""))
+  (lib (name "microSD")(type "KiCad")(uri "${KIPRJMOD}/lib/microSD.kicad_sym")(options "")(descr ""))
+  (lib (name "RTC")(type "KiCad")(uri "${KIPRJMOD}/lib/RTC.kicad_sym")(options "")(descr ""))
+  (lib (name "sht15")(type "KiCad")(uri "${KIPRJMOD}/lib/sht15.kicad_sym")(options "")(descr ""))
+)
