@@ -18,16 +18,16 @@
 
 // Constants
 #define POWA 4    // pin 4 supplies power to microSD card breakout and SHT15 sensor
+#define PINON 7
 #define NREADS 5
 #define ANALOGMAX 8
 #define RtcSquareWavePin 8 // Arduino Pro Mini
-#define INTERVAL 10
 #define maxSDLines2Serial 5
 #define line_buffer_size 300
 #define SHT85_ADDRESS 0x44
 
 // Launch Variables   ******************************
-// long interval = 10;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
+const uint8_t interval = 10;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
 char filename_prefix[] = "";
 char filename_ext[] = ".csv";
 char filename[20];    // Set filename Format: "12345678.123". Cannot be more than 8 characters in length, contain spaces or begin with a number
@@ -56,6 +56,7 @@ void setup()
   while (!Serial);
   
   pinMode(POWA, OUTPUT);  // set output pins
+  pinMode(PINON, OUTPUT);  // set output pins
   // set the interupt pin to input mode
   pinMode(RtcSquareWavePin, INPUT_PULLUP); // external pullup maybe required still
   
@@ -76,15 +77,7 @@ void setup()
 // loop ****************************************************************
 void loop()
 {  
-  digitalWrite(POWA, LOW);  // turn off microSD card to save power
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(1);  // give some delay for SD card and RTC to be low before processor sleeps to avoid it being stuck
-
-  //chip.turnOffADC();    // turn off ADC to save power
-  //chip.turnOffSPI();  // turn off SPI bus to save power
-  //chip.turnOffBOD();    // turn off Brown-out detection to save power
-  
-  time = time+INTERVAL;
+  time = time+interval;
   setNextAlarm(time);      //set next alarm before sleeping
 
   Watchdog.sleep();    // put processor in extreme power down mode - GOODNIGHT!
@@ -96,6 +89,7 @@ void loop()
   //chip.turnOnADC();    // enable ADC after processor wakes up
   //chip.turnOnSPI();   // turn on SPI bus once the processor wakes up
   //delay(1);    // important delay to ensure SPI bus is properly activated
+  
   int year,month,day,hour,minute,second;
   year=time.Year(); month=time.Month(); day=time.Day(); hour=time.Hour(); minute=time.Minute(); second=time.Second();
 
@@ -107,9 +101,10 @@ void loop()
   RTC.LatchAlarmsTriggeredFlags();    // clear alarm flag
   
   digitalWrite(LED_BUILTIN, HIGH);
-
-  pinMode(POWA, OUTPUT);
+  // pinMode(POWA, OUTPUT);
   digitalWrite(POWA, HIGH);    // turn on SD card
+  // pinMode(PINON, OUTPUT);
+  digitalWrite(PINON, HIGH);    // turn on sensors
   delay(1);    // give some delay to ensure RTC and SD are initialized properly
   
   pinMode(SDcsPin, OUTPUT);
@@ -120,27 +115,26 @@ void loop()
   
   float temperature;
   float humidity; 
-  float dewPoint;
   float RData[8];
 
-  getDataFromSensors(&temperature,&humidity,&dewPoint, RData);
+  getDataFromSensors(&temperature,&humidity,RData);
   #ifdef DEBUG_SENSORS
-    SerialDebugSensors(&temperature,&humidity,&dewPoint, RData);
+    SerialDebugSensors(&temperature,&humidity,RData);
   #endif
 
-  // if (hour==0 && fileLastHour==23){
-  //   fileLastHour=-1;
-  // }
-  // if (hour>fileLastHour){
-  //   delay(1);
+  if (hour==0 && fileLastHour==23){
+    fileLastHour=-1;
+  }
+  if (hour>fileLastHour){
+    delay(1);
     
-  //   fileLastHour = hour;
+    fileLastHour = hour;
 
-  //   doFilename(month,day,fileLastHour);
-  //   initFile();
-  //   delay(1);
-  // }
-  // printDataEntry2File(year, month, day, hour, minute, second,&temperature,&humidity,&dewPoint,RData);
+    doFilename(month,day,fileLastHour);
+    initFile();
+    delay(1);
+  }
+  printDataEntry2File(year, month, day, hour, minute, second,&temperature,&humidity,RData);
   // if (nSDLines2Serial<maxSDLines2Serial){
   //   nSDLines2Serial++;
   //   Serial.println("");
@@ -153,6 +147,14 @@ void loop()
 
 //  SPCR = 0;  // reset SPI control register
   digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(POWA, LOW);  // turn off microSD card to save power
+  digitalWrite(PINON, LOW);  // turn off microSD card to save power
+
+  delay(1);  // give some delay for SD card and RTC to be low before processor sleeps to avoid it being stuck
+
+  //chip.turnOffADC();    // turn off ADC to save power
+  //chip.turnOffSPI();  // turn off SPI bus to save power
+  //chip.turnOffBOD();    // turn off Brown-out detection to save power
 }
 
 // ------------------------------------------------
@@ -211,7 +213,7 @@ void initFile(){
   file.close();    // close file - very important
 }
 
-void getDataFromSensors(float* temperature, float* humidity, float* dewPoint, float* RData){
+void getDataFromSensors(float* temperature, float* humidity, float* RData){
   for (int a = A0; a < A0 + ANALOGMAX; a++)
     for (int i = 0; i < NREADS; i++)
       analogRead(a);  // first few readings from ADC may not be accurate, so they're cleared out here
@@ -225,9 +227,8 @@ void getDataFromSensors(float* temperature, float* humidity, float* dewPoint, fl
 
   // Read sensor data
   sensor.read(); 
-  *temperature += sensor.getTemperature();
-  *humidity += sensor.getHumidity();
-  *dewPoint = 0;
+  *temperature = sensor.getTemperature();
+  *humidity = sensor.getHumidity();
 }
 
 void setNextAlarm(RtcDateTime next){
@@ -274,12 +275,12 @@ void lastSDLine2Serial(){
 
 }
 
-void printDataEntry2File(int year, int month, int day, int hour, int minute, int second, float* temperature, float* humidity, float* dewPoint, float* RData){
+void printDataEntry2File(int year, int month, int day, int hour, int minute, int second, float* temperature, float* humidity, float* RData){
   ofstream file(filename,ios_base::app);
 
   file << year << "-" << month << "-" << day << " "
        << hour << ":" << minute << ":" << second << ",";
-  file << *temperature << "," << *humidity << "," << *dewPoint;
+  file << *temperature << "," << *humidity ;
   for (int a = 0; a < ANALOGMAX; a++){
     file << ",";
     file << RData[a];
@@ -383,13 +384,16 @@ void SerialDebugRTC(int year, int month, int day, int hour, int minute, int seco
 #endif 
 
 #ifdef DEBUG_SENSORS
-void SerialDebugSensors(float* temperature, float* humidity, float* dewPoint, float* RData){
+void SerialDebugSensors(float* temperature, float* humidity, float* RData){
+  Serial.print("Status: ");
+  Serial.println();
   Serial.print(*temperature);
   Serial.print(" ");
   Serial.print(*humidity);
-  Serial.print(" ");
-  Serial.print(*dewPoint);
-  Serial.print(" ");
-  Serial.println(RData[0]);
+  for (int a = 0; a < ANALOGMAX; a++){
+    Serial.print(" ");
+    Serial.print(RData[a]);
+  }
+  Serial.println(" ");
 }
 #endif
