@@ -12,8 +12,8 @@
 #include <SPI.h>
 
 
-#define DEBUG_RTC
-#define DEBUG_SENSORS
+// #define DEBUG_RTC
+// #define DEBUG_SENSORS
 #define DEBUG_SD 0
 
 // Constants
@@ -135,14 +135,14 @@ void loop()
     delay(1);
   }
   printDataEntry2File(year, month, day, hour, minute, second,&temperature,&humidity,RData);
-  // if (nSDLines2Serial<maxSDLines2Serial){
-  //   nSDLines2Serial++;
-  //   Serial.println("");
-  //   Serial.print("[");
-  //   Serial.print(nSDLines2Serial);
-  //   Serial.print("] ");
-  //   lastSDLine2Serial();
-  // }
+  if (nSDLines2Serial<maxSDLines2Serial){
+    nSDLines2Serial++;
+    Serial.println("");
+    Serial.print("[");
+    Serial.print(nSDLines2Serial);
+    Serial.print("] ");
+    lastSDLine2Serial();
+  }
   
 
 //  SPCR = 0;  // reset SPI control register
