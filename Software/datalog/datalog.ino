@@ -4,15 +4,15 @@
 //****************************************************************
 
 // SELECT the appropriate sensor
-// #define SHT71
-#define SHT85
+// #define SHT71SENSOR
+#define SHT85SENSOR
 
 #include <EEPROM.h>
 #include <RtcDS3234.h>
 #include <Adafruit_SleepyDog.h>
-#ifdef SHT71
+#ifdef SHT71SENSOR
   #include <Sensirion.h>
-#else // SHT85
+#else // SHT85SENSOR
   #include <SoftwareWire.h>
   #include <SHT85.h>
 #endif
@@ -54,9 +54,9 @@ RtcDateTime time;
 
 RtcDS3234<SPIClass> RTC(SPI, DS3234_CS_PIN);
 
-#ifdef SHT71
+#ifdef SHT71SENSOR
   Sensirion sensor(SHT_dataPin, SHT_clockPin);  // declare object for SHT71 class
-#else 
+#else // SHT85SENSOR
   SoftwareWire myWire(SHT_dataPin, SHT_clockPin);
   SHT85 sensor;  // declare object for SHT85 class
 #endif
@@ -80,7 +80,7 @@ void setup()
   
   time = RTC.GetDateTime();
 
-  #ifdef SHT85
+  #ifdef SHT85SENSOR
     myWire.begin();
     sensor.begin(SHT85_ADDRESS,&myWire);
     myWire.setClock(100000UL);
@@ -240,10 +240,10 @@ void getDataFromSensors(float* temperature, float* humidity, float* RData){
     RData[a] = mossImpedance(adcData, RValue); //Reference resistor value
   }
 
-  #ifdef SHT71
+  #ifdef SHT71SENSOR
     float dew;
     sensor.measure(temperature,humidity,&dew);
-  #else // SHT85
+  #else // SHT85SENSOR
     // Read sensor data
     sensor.read(); 
     *temperature = sensor.getTemperature();
