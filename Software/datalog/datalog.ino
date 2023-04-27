@@ -1,16 +1,24 @@
 //****************************************************************
 // Data logging software from Leo, Lareo et al. 2018
+// v1.2 <angel.lareo@gma>
 //****************************************************************
+
+// SELECT the appropriate sensor
+// #define SHT71
+#define SHT85
 
 #include <EEPROM.h>
 #include <RtcDS3234.h>
 #include <Adafruit_SleepyDog.h>
-#include <SoftwareWire.h>
-#include <SHT85.h>
+#ifdef SHT71
+  #include <Sensirion.h>
+#else // SHT85
+  #include <SoftwareWire.h>
+  #include <SHT85.h>
+#endif
 #include <SdFat.h>
 #include <sdios.h>
 #include <SPI.h>
-
 
 // #define DEBUG_RTC
 // #define DEBUG_SENSORS
@@ -46,7 +54,12 @@ RtcDateTime time;
 
 RtcDS3234<SPIClass> RTC(SPI, DS3234_CS_PIN);
 SoftwareWire myWire(SHT_dataPin, SHT_clockPin);
-SHT85 sensor;  // declare object for SHT85 class
+
+#ifdef SHT71
+  Sensirion sensor(SHT_dataPin, SHT_clockPin);  // declare object for SHT71 class
+#else 
+  SHT85 sensor;  // declare object for SHT85 class
+#endif
 SdFat sd; 		    // declare object for SdFat class
 
 // setup ****************************************************************
@@ -67,10 +80,12 @@ void setup()
   
   time = RTC.GetDateTime();
 
-  myWire.begin();
-  sensor.begin(SHT85_ADDRESS,&myWire);
-  myWire.setClock(100000UL);
-
+  #ifdef SHT85
+    myWire.begin();
+    sensor.begin(SHT85_ADDRESS,&myWire);
+    myWire.setClock(100000UL);
+  #endif
+  
   delay(1);
 }
 
@@ -225,10 +240,15 @@ void getDataFromSensors(float* temperature, float* humidity, float* RData){
     RData[a] = mossImpedance(adcData, RValue); //Reference resistor value
   }
 
-  // Read sensor data
-  sensor.read(); 
-  *temperature = sensor.getTemperature();
-  *humidity = sensor.getHumidity();
+  #ifdef
+    float dew;
+    sensor.measure(temperature,humidity,&dew);
+  #else // SHT85
+    // Read sensor data
+    sensor.read(); 
+    *temperature = sensor.getTemperature();
+    *humidity = sensor.getHumidity();
+  #endif
 }
 
 void setNextAlarm(RtcDateTime next){
