@@ -17,15 +17,15 @@ const uint8_t interval = 600;  // set logging interval in SECONDS, eg: set 300 s
 Modify this portion of the code for selecting the appropriate sensor (default to SHT85):
 ```
 // SELECT the appropriate sensor
-// #define SHT71
-#define SHT85
+// #define SHT71SENSOR
+#define SHT85SENSOR
 ```
 
 If you are using **SHT7x**, change it this way:
 ```
 // SELECT the appropriate sensor
-#define SHT71
-// #define SHT85
+#define SHT71SENSOR
+// #define SHT85SENSOR
 ```
 
 ## Serial debug RTC
