@@ -53,11 +53,11 @@ int nSDLines2Serial=0;
 RtcDateTime time;
 
 RtcDS3234<SPIClass> RTC(SPI, DS3234_CS_PIN);
-SoftwareWire myWire(SHT_dataPin, SHT_clockPin);
 
 #ifdef SHT71
   Sensirion sensor(SHT_dataPin, SHT_clockPin);  // declare object for SHT71 class
 #else 
+  SoftwareWire myWire(SHT_dataPin, SHT_clockPin);
   SHT85 sensor;  // declare object for SHT85 class
 #endif
 SdFat sd; 		    // declare object for SdFat class
@@ -240,7 +240,7 @@ void getDataFromSensors(float* temperature, float* humidity, float* RData){
     RData[a] = mossImpedance(adcData, RValue); //Reference resistor value
   }
 
-  #ifdef
+  #ifdef SHT71
     float dew;
     sensor.measure(temperature,humidity,&dew);
   #else // SHT85
