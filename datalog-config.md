@@ -30,14 +30,14 @@ If you are using **SHT7x**, change it this way:
 
 ## Serial debug RTC
 
-Uncomment this to turn on clock debug prompts through the serial port:
+Uncomment this (remove //) to turn on clock debug prompts through the serial port:
 ```
 #define DEBUG_RTC
 ```
 
 ## Serial debug sensors
 
-Uncomment this to turn on sensor debug prompts through serial port:
+Uncomment this (remove //) to turn on sensor debug prompts through serial port:
 ```
 #define DEBUG_SENSORS
 ```
