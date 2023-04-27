@@ -32,12 +32,12 @@ If you are using **SHT7x**, change it this way:
 
 Uncomment this to turn on clock debug prompts through the serial port:
 ```
-// #define DEBUG_RTC
+#define DEBUG_RTC
 ```
 
 ## Serial debug sensors
 
 Uncomment this to turn on sensor debug prompts through serial port:
 ```
-// #define DEBUG_SENSORS
+#define DEBUG_SENSORS
 ```
