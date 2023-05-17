@@ -101,13 +101,10 @@ void setup()
 // loop ****************************************************************
 void loop()
 {  
-  int year,month,day,hour,minute,second;
-
   time = time+interval;
   #ifdef DEBUG_RTC
     Serial.print("Next alarm at ");
-    year=time.Year(); month=time.Month(); day=time.Day(); hour=time.Hour(); minute=time.Minute(); second=time.Second();
-    SerialDebugRTC(year, month, day, hour, minute, second);
+    SerialDebugRTC();
     delay(PRINT_DELAY);
   #endif
   setNextAlarm(time);      //set next alarm before sleeping
@@ -130,11 +127,10 @@ void loop()
   delay(1);    // important delay to ensure SPI bus is properly activated
 
   time = RTC.GetDateTime();
-  year=time.Year(); month=time.Month(); day=time.Day(); hour=time.Hour(); minute=time.Minute(); second=time.Second();
 
   #ifdef DEBUG_RTC
     Serial.print("Awake at ");
-    SerialDebugRTC(year, month, day, hour, minute, second);
+    SerialDebugRTC();
   #endif
   
   RTC.LatchAlarmsTriggeredFlags();    // clear alarm flag
@@ -161,20 +157,20 @@ void loop()
     SerialDebugSensors(&temperature,&humidity,RData);
   #endif
 
-  if (hour==0 && fileLastHour==23){
+  if (time.Hour()==0 && fileLastHour==23){
     fileLastHour=-1;
   }
-  if (hour>fileLastHour){
+  if (time.Hour()>fileLastHour){
     delay(1);
     
-    fileLastHour = hour;
+    fileLastHour = time.Hour();
 
-    doFilename(month,day,fileLastHour);
+    doFilename(time.Month(),time.Day(),fileLastHour);
     initFile();
     delay(1);
   }
   
-  printDataEntry2File(year, month, day, hour, minute, second,&temperature,&humidity,RData);
+  printDataEntry2File(&temperature,&humidity,RData);
   if (nSDLines2Serial<maxSDLines2Serial){
     nSDLines2Serial++;
     Serial.println("");
@@ -320,26 +316,26 @@ void lastSDLine2Serial(){
 
 }
 
-void printDataEntry2File(int year, int month, int day, int hour, int minute, int second, float* temperature, float* humidity, float* RData){
+void printDataEntry2File(float* temperature, float* humidity, float* RData){
   ofstream file(filename,ios_base::app);
 
-  if (year < 10) file << '0';
-  file << year;
+  if (time.Year() < 10) file << '0';
+  file << time.Year();
   file << "-";
-  if (month < 10) file << '0';
-  file << month;
+  if (time.Month() < 10) file << '0';
+  file << time.Month();
   file << "-";
-  if (day < 10) file << '0';
-  file << day;
+  if (time.Day() < 10) file << '0';
+  file << time.Day();
   file << " ";
-  if (hour < 10) file << '0';
-  file << hour;
+  if (time.Hour() < 10) file << '0';
+  file << time.Hour();
   file << ":";
-  if (minute < 10) file << '0';
-  file << minute;
+  if (time.Minute() < 10) file << '0';
+  file << time.Minute();
   file << ":";
-  if (second < 10) file << '0';
-  file << second;
+  if (time.Second() < 10) file << '0';
+  file << time.Second();
   file << ",";
   if (*temperature < 10) file << '0';
   file << *temperature;
@@ -431,19 +427,19 @@ void doFilename(int month, int day, int hour){
 
 // SERIAL DEBUG
 #ifdef DEBUG_RTC
-void SerialDebugRTC(int year, int month, int day, int hour, int minute, int second){
-  Serial.print(year);
+void SerialDebugRTC(){
+  Serial.print(time.Year());
   Serial.print("-");
-  Serial.print(month);
+  Serial.print(time.Month());
   Serial.print("-");
-  Serial.print(day);
+  Serial.print(time.Day());
   Serial.print(" ");
   
-  Serial.print(hour);
+  Serial.print(time.Hour());
   Serial.print(":");
-  Serial.print(minute);
+  Serial.print(time.Minute());
   Serial.print(":");
-  Serial.println(second); 
+  Serial.println(time.Second()); 
 }
 #endif 
 
