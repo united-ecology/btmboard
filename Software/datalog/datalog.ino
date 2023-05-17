@@ -20,7 +20,7 @@
 #include <SPI.h>
 #include <PowerSaver.h>
 
-// #define DEBUG_RTC
+#define DEBUG_RTC
 // #define DEBUG_SENSORS
 #define DEBUG_SD 0
 #define PRINT_DELAY 7 // Increase this if strange characters appear in serial prints
@@ -127,6 +127,7 @@ void loop()
   delay(1);    // important delay to ensure SPI bus is properly activated
 
   time = RTC.GetDateTime();
+  uint8_t hour = time.Hour();
 
   #ifdef DEBUG_RTC
     Serial.print("Awake at ");
@@ -157,10 +158,11 @@ void loop()
     SerialDebugSensors(&temperature,&humidity,RData);
   #endif
 
-  if (time.Hour()==0 && fileLastHour==23){
+
+  if (hour==0 && fileLastHour==23){
     fileLastHour=-1;
   }
-  if (time.Hour()>fileLastHour){
+  if (hour>fileLastHour){
     delay(1);
     
     fileLastHour = time.Hour();
@@ -319,23 +321,27 @@ void lastSDLine2Serial(){
 void printDataEntry2File(float* temperature, float* humidity, float* RData){
   ofstream file(filename,ios_base::app);
 
-  if (time.Year() < 10) file << '0';
   file << time.Year();
   file << "-";
-  if (time.Month() < 10) file << '0';
-  file << time.Month();
+  int d = time.Month();
+  if (d < 10) file << '0';
+  file << d;
   file << "-";
-  if (time.Day() < 10) file << '0';
-  file << time.Day();
+  d = time.Day();
+  if (d < 10) file << '0';
+  file << d;
   file << " ";
-  if (time.Hour() < 10) file << '0';
-  file << time.Hour();
+  d = time.Hour();
+  if (d < 10) file << '0';
+  file << d;
   file << ":";
-  if (time.Minute() < 10) file << '0';
-  file << time.Minute();
+  d = time.Minute();
+  if (d < 10) file << '0';
+  file << d;
   file << ":";
-  if (time.Second() < 10) file << '0';
-  file << time.Second();
+  d = time.Second();
+  if (d < 10) file << '0';
+  file << d;
   file << ",";
   if (*temperature < 10) file << '0';
   file << *temperature;
