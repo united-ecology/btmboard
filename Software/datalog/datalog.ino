@@ -247,7 +247,7 @@ void initFile(){
     }
     sd.errorHalt("open");
   }
-  file << "Date/Time,Temp(C),RH(%),Dew Point(C), Impedance(ohm)\n";    // Print header to file
+  file << "Date/Time,Temp(C),RH(%),A0_Imp(ohm),A1_Imp(ohm),A2_Imp(ohm),A3_Imp(ohm),A4_Imp(ohm),A5_Imp(ohm),A6_Imp(ohm),A7_Imp(ohm)\n";    // Print header to file
   file.close();    // close file - very important
 }
 
