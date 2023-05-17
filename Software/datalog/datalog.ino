@@ -9,7 +9,6 @@
 
 #include <EEPROM.h>
 #include <RtcDS3234.h>
-#include <Adafruit_SleepyDog.h>
 #ifdef SHT71SENSOR
   #include <Sensirion.h>
 #else // SHT85SENSOR
@@ -19,10 +18,12 @@
 #include <SdFat.h>
 #include <sdios.h>
 #include <SPI.h>
+#include <PowerSaver.h>
 
 // #define DEBUG_RTC
 // #define DEBUG_SENSORS
 #define DEBUG_SD 0
+#define PRINT_DELAY 7 // Increase this if strange characters appear in serial prints
 
 // Constants
 #define POWA 4    // pin 4 supplies power to microSD card breakout and SHT15 sensor
@@ -35,7 +36,7 @@
 #define SHT85_ADDRESS 0x44
 
 // Launch Variables   ******************************
-const uint8_t interval = 7;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
+const uint16_t interval = 300;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
 char filename_prefix[] = "";
 char filename_ext[] = ".csv";
 char filename[20];    // Set filename Format: "12345678.123". Cannot be more than 8 characters in length, contain spaces or begin with a number
@@ -51,7 +52,7 @@ int fileLastHour=-1;
 int nSDLines2Serial=0;
 
 RtcDateTime time;
-
+PowerSaver chip;  	// declare object for PowerSaver class
 RtcDS3234<SPIClass> RTC(SPI, DS3234_CS_PIN);
 
 #ifdef SHT71SENSOR
@@ -61,6 +62,12 @@ RtcDS3234<SPIClass> RTC(SPI, DS3234_CS_PIN);
   SHT85 sensor;  // declare object for SHT85 class
 #endif
 SdFat sd; 		    // declare object for SdFat class
+
+// ISR ****************************************************************
+ISR(PCINT0_vect)  // Interrupt Vector Routine to be executed when pin 8 receives an interrupt.
+{
+  asm("nop");
+}
 
 // setup ****************************************************************
 void setup()
@@ -87,25 +94,42 @@ void setup()
   #endif
   
   delay(1);
+
+  chip.sleepInterruptSetup();
 }
 
 // loop ****************************************************************
 void loop()
 {  
+  int year,month,day,hour,minute,second;
+
   time = time+interval;
+  #ifdef DEBUG_RTC
+    Serial.print("Next alarm at ");
+    year=time.Year(); month=time.Month(); day=time.Day(); hour=time.Hour(); minute=time.Minute(); second=time.Second();
+    SerialDebugRTC(year, month, day, hour, minute, second);
+    delay(PRINT_DELAY);
+  #endif
   setNextAlarm(time);      //set next alarm before sleeping
 
-  Watchdog.sleep();    // put processor in extreme power down mode - GOODNIGHT!
+  
+  //Watchdog.sleep();    // put processor in extreme power down mode - GOODNIGHT!
+  chip.turnOffADC();    // turn off ADC to save power
+  chip.turnOffSPI();  // turn off SPI bus to save power
+  chip.turnOffWDT();  // turn off WatchDog Timer to save power (does not work for Pro Mini - only works for Uno)
+  chip.turnOffBOD();    // turn off Brown-out detection to save power
+
+  chip.goodNight();    // put processor in extreme power down mode - GOODNIGHT!
   // this function saves previous states of analog pins and sets them to LOW INPUTS
   // average current draw on Mini Pro should now be around 0.195 mA (with both onboard LEDs taken out)
   // Processor will only wake up with an interrupt generated from the RTC, which occurs every logging interval
 
   // code will resume from here once the processor wakes up =============== //
-  //chip.turnOnADC();    // enable ADC after processor wakes up
-  //chip.turnOnSPI();   // turn on SPI bus once the processor wakes up
-  //delay(1);    // important delay to ensure SPI bus is properly activated
-  
-  int year,month,day,hour,minute,second;
+  chip.turnOnADC();    // enable ADC after processor wakes up
+  chip.turnOnSPI();   // turn on SPI bus once the processor wakes up
+  delay(1);    // important delay to ensure SPI bus is properly activated
+
+  time = RTC.GetDateTime();
   year=time.Year(); month=time.Month(); day=time.Day(); hour=time.Hour(); minute=time.Minute(); second=time.Second();
 
   #ifdef DEBUG_RTC
@@ -115,7 +139,7 @@ void loop()
   
   RTC.LatchAlarmsTriggeredFlags();    // clear alarm flag
   
-  digitalWrite(LED_BUILTIN, HIGH);
+  // digitalWrite(LED_BUILTIN, HIGH);
   // pinMode(POWA, OUTPUT);
   digitalWrite(POWA, HIGH);    // turn on SD card
   // pinMode(PINON, OUTPUT);
@@ -149,6 +173,7 @@ void loop()
     initFile();
     delay(1);
   }
+  
   printDataEntry2File(year, month, day, hour, minute, second,&temperature,&humidity,RData);
   if (nSDLines2Serial<maxSDLines2Serial){
     nSDLines2Serial++;
@@ -161,7 +186,7 @@ void loop()
   
 
 //  SPCR = 0;  // reset SPI control register
-  digitalWrite(LED_BUILTIN, LOW);
+  // digitalWrite(LED_BUILTIN, LOW);
   digitalWrite(POWA, LOW);  // turn off microSD card to save power
   digitalWrite(PINON, LOW);  // turn off microSD card to save power
 
@@ -291,16 +316,36 @@ void lastSDLine2Serial(){
   file.close();
   
   Serial.println(buffer);     // Display it
-  delay(5);
+  delay(PRINT_DELAY);
 
 }
 
 void printDataEntry2File(int year, int month, int day, int hour, int minute, int second, float* temperature, float* humidity, float* RData){
   ofstream file(filename,ios_base::app);
 
-  file << year << "-" << month << "-" << day << " "
-       << hour << ":" << minute << ":" << second << ",";
-  file << *temperature << "," << *humidity ;
+  if (year < 10) file << '0';
+  file << year;
+  file << "-";
+  if (month < 10) file << '0';
+  file << month;
+  file << "-";
+  if (day < 10) file << '0';
+  file << day;
+  file << " ";
+  if (hour < 10) file << '0';
+  file << hour;
+  file << ":";
+  if (minute < 10) file << '0';
+  file << minute;
+  file << ":";
+  if (second < 10) file << '0';
+  file << second;
+  file << ",";
+  if (*temperature < 10) file << '0';
+  file << *temperature;
+  file << ",";
+  if (*humidity < 10) file << '0';
+  file << *humidity;
   for (int a = 0; a < ANALOGMAX; a++){
     file << ",";
     file << RData[a];
@@ -387,7 +432,6 @@ void doFilename(int month, int day, int hour){
 // SERIAL DEBUG
 #ifdef DEBUG_RTC
 void SerialDebugRTC(int year, int month, int day, int hour, int minute, int second){
-  month = time.Month();
   Serial.print(year);
   Serial.print("-");
   Serial.print(month);
