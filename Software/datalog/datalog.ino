@@ -354,6 +354,10 @@ void printDataEntry2File(float* temperature, float* humidity, float* RData){
   }
   file << "\n";
   file.close();
+  
+  //Needed who knows why ¯\_(ツ)_/¯
+  file.open(filename,ios_base::app);
+  file.close();
 }
 
 // Averaging ADC values to counter noise in readings  *********************************************
