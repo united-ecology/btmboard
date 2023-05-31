@@ -180,15 +180,14 @@ void loop()
     Serial.print(nSDLines2Serial);
     Serial.print("] ");
     lastSDLine2Serial();
-  }
+  } 
+  else delay(PRINT_DELAY);
   
 
 //  SPCR = 0;  // reset SPI control register
   // digitalWrite(LED_BUILTIN, LOW);
   digitalWrite(POWA, LOW);  // turn off microSD card to save power
   digitalWrite(PINON, LOW);  // turn off microSD card to save power
-
-  delay(1);  // give some delay for SD card and RTC to be low before processor sleeps to avoid it being stuck
 
   //chip.turnOffADC();    // turn off ADC to save power
   //chip.turnOffSPI();  // turn off SPI bus to save power
