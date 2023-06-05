@@ -83,8 +83,7 @@ void setup()
   SPI.begin();
 
   setupRTC();
-  setupSD();
-  
+
   time = RTC.GetDateTime();
 
   #ifdef SHT85SENSOR
@@ -100,10 +99,18 @@ void setup()
 
 // loop ****************************************************************
 void loop()
-{  
+{ 
+  #ifdef DEBUG_RTC
+    Serial.print(time.Hour());
+    Serial.print(":");
+    Serial.print(time.Minute());
+    Serial.print(":");
+    Serial.print(time.Second());
+  #endif
+
   time = time+interval;
   #ifdef DEBUG_RTC
-    Serial.print("Next alarm at ");
+    Serial.print(" - Next alarm at ");
     SerialDebugRTC();
     delay(PRINT_DELAY);
   #endif
@@ -136,17 +143,18 @@ void loop()
   
   RTC.LatchAlarmsTriggeredFlags();    // clear alarm flag
   
-  // digitalWrite(LED_BUILTIN, HIGH);
-  // pinMode(POWA, OUTPUT);
+  //digitalWrite(LED_BUILTIN, HIGH);
+  pinMode(POWA, OUTPUT);
   digitalWrite(POWA, HIGH);    // turn on SD card
-  // pinMode(PINON, OUTPUT);
+  pinMode(PINON, OUTPUT);
   digitalWrite(PINON, HIGH);    // turn on sensors
   delay(1);    // give some delay to ensure RTC and SD are initialized properly
   
   pinMode(SDcsPin, OUTPUT);
   if (!sd.begin(SdSpiConfig(SDcsPin))){   // very important - reinitialize SD card on the SPI bus
     if (DEBUG_SD) Serial.println("SD ERROR");
-    sd.initErrorHalt();
+    sd.initErrorPrint();
+    return;
   }
   
   float temperature;
@@ -180,10 +188,10 @@ void loop()
     Serial.print(nSDLines2Serial);
     Serial.print("] ");
     lastSDLine2Serial();
-  } 
-  else delay(PRINT_DELAY);
+  }
   
-
+  sd.end();
+  delay(1);
 //  SPCR = 0;  // reset SPI control register
   // digitalWrite(LED_BUILTIN, LOW);
   digitalWrite(POWA, LOW);  // turn off microSD card to save power
@@ -221,20 +229,6 @@ void setupRTC(){
   
   RTC.Enable32kHzPin(false);
   RTC.SetSquareWavePin(DS3234SquareWavePin_ModeAlarmBoth); 
-}
-
-void setupSD(){
-  int ret;
-  pinMode(POWA, OUTPUT);
-  digitalWrite(POWA, HIGH);    // turn on SD card
-  delay(1);    // give some delay to ensure RTC and SD are initialized properly
-
-  if (!sd.begin(SdSpiConfig(SDcsPin))){ // initialize SD card on the SPI bus - very important
-    if (DEBUG_SD) {
-      Serial.println("SD ERROR");
-      sd.initErrorHalt();
-    }
-  }
 }
 
 void initFile(){
