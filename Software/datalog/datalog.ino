@@ -213,7 +213,7 @@ void setupRTC(){
   RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
 
   compiled += timeshift;
-  if (timeshifti != 0) {
+  if (timeshift != 0) {
      RTC.SetDateTime(compiled);
   }
   
