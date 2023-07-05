@@ -33,14 +33,11 @@ Depending in the system configuration, you may experience problems with time shi
 
 1. Find the following line in the code:
 ```
-RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
+const int timeshift = 0; // Change this variable if you are experiencing time shift problems (in seconds, i.e. -3600 to shift one hour) 
 ```
 
-2. After this line, add the following one to decrease the time (modify the corresponding time accordingly):
-```
-compiled -= 3600; // shift the time one hour (3600 seconds) back
-                  // use += instead of -= if you want a time increase
-```
+2. Modify it to increase/decrease the shift, in order to adjust the clock time to the correct time.
+
 
 ## Serial debug RTC
 
