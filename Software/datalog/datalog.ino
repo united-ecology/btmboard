@@ -3,18 +3,31 @@
 // v1.2 <angel.lareo@gma>
 //****************************************************************
 
-// SELECT the appropriate sensor
-// #define SHT71SENSOR
-#define SHT85SENSOR
+// SELECT the appropriate sensor ----------
+// #define SHT71SENSOR //                 |
+#define SHT85SENSOR //                    |
+// ----------------------------------------
 
-#include <EEPROM.h>
-#include <RtcDS3234.h>
+// SELECT the appropriate RTC -------------
+// #define RTC_DS3234 //                  |
+#define RTC_DS1302  //                    |
+// ----------------------------------------
+
+#ifdef RTC_DS3234
+  #include <RtcDS3234.h>
+#else // RTC_DS1302
+  #include <ThreeWire.h> 
+  #include <RtcDS1302.h>
+#endif
+
 #ifdef SHT71SENSOR
   #include <Sensirion.h>
 #else // SHT85SENSOR
   #include <SoftwareWire.h>
   #include <SHT85.h>
 #endif
+
+#include <EEPROM.h>
 #include <SdFat.h>
 #include <sdios.h>
 #include <SPI.h>
@@ -45,6 +58,9 @@ const int timeshift = 0; // Change this variable if you are experiencing time sh
 // Global objects and variables   ******************************
 const int SDcsPin = 9;        // pin 9 is CS pin for MicroSD breakout
 const uint8_t DS3234_CS_PIN = 10; // RTC SS pin
+const uint8_t IO_PIN = 12; // RTC MISO
+const uint8_t CLK_PIN = 13; // RTC CLK
+const uint8_t CS_PIN = 10; // RTC CS/CE pin
 const uint8_t SHT_clockPin = 3;   // pin used for SCK on SHT85 breakout
 const uint8_t SHT_dataPin = 5;    // pin used for DATA on SHT85 breakout
 const float VCC = 3.3;
@@ -54,7 +70,13 @@ int nSDLines2Serial=0;
 
 RtcDateTime time;
 PowerSaver chip;  	// declare object for PowerSaver class
-RtcDS3234<SPIClass> RTC(SPI, DS3234_CS_PIN);
+
+#ifdef RTC_DS3234
+RtcDS3234<SPIClass> RTC(SPI, CS_PIN);
+#else // RTC_DS1302
+ThreeWire myThreeWire(IO_PIN,CLK_PIN,CS_PIN); // IO, SCLK, CE
+RtcDS1302<ThreeWire> RTC(myThreeWire);
+#endif
 
 #ifdef SHT71SENSOR
   Sensirion sensor(SHT_dataPin, SHT_clockPin);  // declare object for SHT71 class
@@ -142,7 +164,7 @@ void loop()
     SerialDebugRTC();
   #endif
   
-  RTC.LatchAlarmsTriggeredFlags();    // clear alarm flag
+  //RTC.LatchAlarmsTriggeredFlags();    // clear alarm flag
   
   //digitalWrite(LED_BUILTIN, HIGH);
   pinMode(POWA, OUTPUT);
@@ -233,8 +255,10 @@ void setupRTC(){
       RTC.SetDateTime(compiled);
   }
   
+#ifdef RTC_DS3234
   RTC.Enable32kHzPin(false);
   RTC.SetSquareWavePin(DS3234SquareWavePin_ModeAlarmBoth); 
+#endif
 }
 
 void initFile(){
@@ -281,7 +305,7 @@ void setNextAlarm(RtcDateTime next){
             next.Second(),
             DS3234AlarmOneControl_HoursMinutesSecondsMatch);
   RTC.SetAlarmOne(alarm1);
-  RTC.LatchAlarmsTriggeredFlags();
+  //RTC.LatchAlarmsTriggeredFlags();
 }
 
 void lastSDLine2Serial(){

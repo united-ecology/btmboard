@@ -1,12 +1,18 @@
-// RTC.configure(MOSI, MISO, CLK, CS)
+// RTC.configure(MOSI, MISO (I/O), CLK, CS)
+// RTC.configura(11,12,13,10)
 // RTC.setDateTime(day, month, year, hour, minute, second)
- 
-#include <RtcDS3234.h>
-#include <SPI.h>
 
-const uint8_t DS3234_CS_PIN = 10; // RTC SS pin
+#include <ThreeWire.h> 
+#include <RtcDS1302.h>
 
-RtcDS3234<SPIClass> RTC(SPI, DS3234_CS_PIN);
+const uint8_t IO_PIN = 12; // RTC MISO
+const uint8_t CLK_PIN = 13; // RTC CLK
+const uint8_t CS_PIN = 10; // RTC CS/CE pin
+
+ThreeWire myWire(IO_PIN,CLK_PIN,CS_PIN); // IO, SCLK, CE
+RtcDS1302<ThreeWire> RTC(myWire);
+
+RtcDateTime time;
 
 void setup()
 {
@@ -18,12 +24,13 @@ void setup()
  
 void loop()
 {
-  RtcDateTime time = RTC.GetDateTime();
+  time = RTC.GetDateTime();
 
   int year,month,day,hour,minute,second;
   year=time.Year(); month=time.Month(); day=time.Day(); hour=time.Hour(); minute=time.Minute(); second=time.Second();
 
-  Serial.println();
+  SerialDebugRTC();
+  // Serial.println();
   delay(1000);
 }
 
@@ -31,6 +38,7 @@ void setupRTC(){
   RTC.Begin();
 
   RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
+  RTC.SetDateTime(compiled);
 
   if (!RTC.IsDateTimeValid()) {
       // Serial.println("RTC lost confidence in the DateTime!");
@@ -48,6 +56,21 @@ void setupRTC(){
       RTC.SetDateTime(compiled);
   }
   
-  RTC.Enable32kHzPin(false);
-  RTC.SetSquareWavePin(DS3234SquareWavePin_ModeAlarmBoth); 
+  //RTC.Enable32kHzPin(false);
+  //RTC.SetSquareWavePin(DS3234SquareWavePin_ModeAlarmBoth); 
+}
+
+void SerialDebugRTC(){
+  Serial.print(time.Year());
+  Serial.print("-");
+  Serial.print(time.Month());
+  Serial.print("-");
+  Serial.print(time.Day());
+  Serial.print(" ");
+  
+  Serial.print(time.Hour());
+  Serial.print(":");
+  Serial.print(time.Minute());
+  Serial.print(":");
+  Serial.println(time.Second()); 
 }
