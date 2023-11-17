@@ -21,14 +21,14 @@
 #include <PowerSaver.h>
 
 #define DEBUG_RTC
-// #define DEBUG_SENSORS
+#define DEBUG_SENSORS
 #define DEBUG_SD 0
 #define PRINT_DELAY 7 // Increase this if strange characters appear in serial prints
 
 // Constants
 #define POWA 4    // pin 4 supplies power to microSD card breakout and SHT15 sensor
 #define PINON 7
-#define NREADS 5
+#define NREADS 16
 #define ANALOGMAX 8
 #define RtcSquareWavePin 8 // Arduino Pro Mini
 #define maxSDLines2Serial 5
@@ -47,7 +47,8 @@ const int SDcsPin = 9;        // pin 9 is CS pin for MicroSD breakout
 const uint8_t DS3234_CS_PIN = 10; // RTC SS pin
 const uint8_t SHT_clockPin = 3;   // pin used for SCK on SHT85 breakout
 const uint8_t SHT_dataPin = 5;    // pin used for DATA on SHT85 breakout
-const float VCC = 3.3;
+const float VCC = 3.3;            // Con Vcc=3.3V lo máximo que da el TL274 es 2.73V
+const float Voffset = 0.00;
 int RValue = 330;
 int fileLastHour=-1;
 int nSDLines2Serial=0;
@@ -76,8 +77,11 @@ void setup()
   Serial.begin(115200); // open serial at 19200 bps
   while (!Serial);
   
-  pinMode(POWA, OUTPUT);  // set output pins
-  pinMode(PINON, OUTPUT);  // set output pins
+  pinMode(POWA, OUTPUT);      // set output pins
+  pinMode(PINON, OUTPUT);     // set output pins
+  digitalWrite(POWA, LOW);    // turn off SD card
+  digitalWrite(PINON, LOW);   // turn off sensors
+
   // set the interupt pin to input mode
   pinMode(RtcSquareWavePin, INPUT_PULLUP); // external pullup maybe required still
   
@@ -116,13 +120,13 @@ void loop()
     delay(PRINT_DELAY);
   #endif
   setNextAlarm(time);      //set next alarm before sleeping
-
   
-  //Watchdog.sleep();    // put processor in extreme power down mode - GOODNIGHT!
-  chip.turnOffADC();    // turn off ADC to save power
-  chip.turnOffSPI();  // turn off SPI bus to save power
-  chip.turnOffWDT();  // turn off WatchDog Timer to save power (does not work for Pro Mini - only works for Uno)
-  chip.turnOffBOD();    // turn off Brown-out detection to save power
+  chip.turnOffADC();        // turn off ADC to save power
+  chip.turnOffSPI();        // turn off SPI bus to save power
+  //chip.turnOffWDT();      // turn off WatchDog Timer to save power (does not work for Pro Mini - only works for Uno)
+  chip.turnOffBOD();        // turn off Brown-out detection to save power
+  pinMode(SCK,OUTPUT);      // turnOffSPI lo había dejado en alto y como entrada
+  digitalWrite(SCK, LOW);   // Para garantizar que el LED verde de SCK se apaga
 
   chip.goodNight();    // put processor in extreme power down mode - GOODNIGHT!
   // this function saves previous states of analog pins and sets them to LOW INPUTS
@@ -144,11 +148,24 @@ void loop()
   
   RTC.LatchAlarmsTriggeredFlags();    // clear alarm flag
   
-  //digitalWrite(LED_BUILTIN, HIGH);
   pinMode(POWA, OUTPUT);
-  digitalWrite(POWA, HIGH);    // turn on SD card
   pinMode(PINON, OUTPUT);
+
+  float temperature;
+  float humidity; 
+  float RData[8];
+
+  // Medida analógica de impedancias
   digitalWrite(PINON, HIGH);    // turn on sensors
+  delay(10);
+  getDataFromSensors(&temperature,&humidity,RData);
+  #ifdef DEBUG_SENSORS
+    SerialDebugSensors(&temperature,&humidity,RData);
+  #endif
+  digitalWrite(PINON, LOW);     // turn off microSD card to save power
+
+  // Grabación de medidas en memoria SD
+  digitalWrite(POWA, HIGH);    // turn on SD card
   delay(1);    // give some delay to ensure RTC and SD are initialized properly
   
   pinMode(SDcsPin, OUTPUT);
@@ -157,15 +174,6 @@ void loop()
     sd.initErrorPrint();
     return;
   }
-  
-  float temperature;
-  float humidity; 
-  float RData[8];
-
-  getDataFromSensors(&temperature,&humidity,RData);
-  #ifdef DEBUG_SENSORS
-    SerialDebugSensors(&temperature,&humidity,RData);
-  #endif
 
 
   if (hour==0 && fileLastHour==23){
@@ -173,9 +181,7 @@ void loop()
   }
   if (hour>fileLastHour){
     delay(1);
-    
     fileLastHour = time.Hour();
-
     doFilename(time.Month(),time.Day(),fileLastHour);
     initFile();
     delay(1);
@@ -194,14 +200,14 @@ void loop()
   sd.end();
   delay(1);
 //  SPCR = 0;  // reset SPI control register
-  // digitalWrite(LED_BUILTIN, LOW);
-  digitalWrite(POWA, LOW);  // turn off microSD card to save power
-  digitalWrite(PINON, LOW);  // turn off microSD card to save power
-
-  //chip.turnOffADC();    // turn off ADC to save power
-  //chip.turnOffSPI();  // turn off SPI bus to save power
-  //chip.turnOffBOD();    // turn off Brown-out detection to save power
+  digitalWrite(POWA, LOW);    // turn off microSD card to save power
+  digitalWrite(PINON, LOW);   // turn off microSD card to save power
 }
+
+
+
+
+
 
 // ------------------------------------------------
 //  FUNCTIONS
@@ -365,14 +371,18 @@ float averageADC(int pin){
   for (int i = 0; i < NREADS; i++){
     sum = sum + analogRead(pin);
   }
-  float average = sum / 5.0;
+  float average = sum / NREADS;
   return average;
 }
 
 // Get mossImp ****************************************************************
 float mossImpedance(float adc, int R){
+  //float Zmoss=99999.0;
   float V = (adc * VCC) / 1023.0;
   return (VCC * R) / V - R;
+  //V = V - Voffset;
+  //if (V>0.0109) Zmoss = ((VCC * R) / V) - R;
+  //return (Zmoss);
 }
 
 void doFilename(int month, int day, int hour){  
