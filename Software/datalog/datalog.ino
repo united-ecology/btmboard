@@ -377,12 +377,12 @@ float averageADC(int pin){
 
 // Get mossImp ****************************************************************
 float mossImpedance(float adc, int R){
-  //float Zmoss=99999.0;
+  float Zmoss=99999.0;
   float V = (adc * VCC) / 1023.0;
-  return (VCC * R) / V - R;
-  //V = V - Voffset;
-  //if (V>0.0109) Zmoss = ((VCC * R) / V) - R;
-  //return (Zmoss);
+  //return (VCC * R) / V - R;
+  V = V - Voffset;
+  if (V>0.0109) Zmoss = ((VCC * R) / V) - R;
+  return (Zmoss);
 }
 
 void doFilename(int month, int day, int hour){  
