@@ -100,6 +100,9 @@ void setup()
   delay(1);
 
   chip.sleepInterruptSetup();
+
+  filename = "data.csv";
+  initFile();
 }
 
 // loop ****************************************************************
@@ -176,16 +179,16 @@ void loop()
   }
 
 
-  if (hour==0 && fileLastHour==23){
-    fileLastHour=-1;
-  }
-  if (hour>fileLastHour){
-    delay(1);
-    fileLastHour = time.Hour();
-    doFilename(time.Month(),time.Day(),fileLastHour);
-    initFile();
-    delay(1);
-  }
+//  if (hour==0 && fileLastHour==23){
+//    fileLastHour=-1;
+//  }
+//  if (hour>fileLastHour){
+//    delay(1);
+//    fileLastHour = time.Hour();
+//    doFilename(time.Month(),time.Day(),fileLastHour);
+//    initFile();
+//    delay(1);
+//  }
   
   printDataEntry2File(&temperature,&humidity,RData);
   if (nSDLines2Serial<maxSDLines2Serial){
