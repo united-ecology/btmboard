@@ -101,7 +101,7 @@ void setup()
 
   chip.sleepInterruptSetup();
 
-  filename = "data.csv";
+  strcpy("data.csv",filename);
   initFile();
 }
 
