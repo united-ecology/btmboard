@@ -39,7 +39,7 @@
 const uint16_t interval = 300;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
 char filename_prefix[] = "";
 char filename_ext[] = ".csv";
-char filename[20];    // Set filename Format: "12345678.123". Cannot be more than 8 characters in length, contain spaces or begin with a number
+char filename = "data.csv";    // Set filename Format: "12345678.123". Cannot be more than 8 characters in length, contain spaces or begin with a number
 const int timeshift = 0; // Change this variable if you are experiencing time shift problems (in seconds, i.e. -3600 to shift one hour) 
 
 // Global objects and variables   ******************************
@@ -100,9 +100,6 @@ void setup()
   delay(1);
 
   chip.sleepInterruptSetup();
-
-  strcpy("data.csv",filename);
-  initFile();
 }
 
 // loop ****************************************************************
