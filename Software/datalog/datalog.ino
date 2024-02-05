@@ -36,7 +36,7 @@
 #define SHT85_ADDRESS 0x44
 
 // Launch Variables   ******************************
-const uint16_t interval = 300;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
+const uint16_t interval = 10;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
 char filename_prefix[] = "";
 char filename_ext[] = ".csv";
 char filename[20];    // Set filename Format: "12345678.123". Cannot be more than 8 characters in length, contain spaces or begin with a number
@@ -79,7 +79,7 @@ void setup()
   
   pinMode(POWA, OUTPUT);      // set output pins
   pinMode(PINON, OUTPUT);     // set output pins
-  digitalWrite(POWA, LOW);    // turn off SD card
+  //digitalWrite(POWA, LOW);    // turn off SD card
   digitalWrite(PINON, LOW);   // turn off sensors
 
   // set the interupt pin to input mode
@@ -200,7 +200,7 @@ void loop()
   sd.end();
   delay(1);
 //  SPCR = 0;  // reset SPI control register
-  digitalWrite(POWA, LOW);    // turn off microSD card to save power
+  //digitalWrite(POWA, LOW);    // turn off microSD card to save power
   digitalWrite(PINON, LOW);   // turn off microSD card to save power
 }
 
