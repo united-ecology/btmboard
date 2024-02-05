@@ -36,7 +36,7 @@
 #define SHT85_ADDRESS 0x44
 
 // Launch Variables   ******************************
-const uint16_t interval = 10;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
+const uint16_t interval = 300;  // set logging interval in SECONDS, eg: set 300 seconds for an interval of 5 mins
 char filename_prefix[] = "";
 char filename_ext[] = ".csv";
 char filename[20];    // Set filename Format: "12345678.123". Cannot be more than 8 characters in length, contain spaces or begin with a number
