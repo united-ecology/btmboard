@@ -20,15 +20,15 @@
 #include <SPI.h>
 #include <PowerSaver.h>
 
-#define DEBUG_RTC
-#define DEBUG_SENSORS
+// #define DEBUG_RTC
+// #define DEBUG_SENSORS
 #define DEBUG_SD 0
 #define PRINT_DELAY 7 // Increase this if strange characters appear in serial prints
 
 // Constants
 #define POWA 4    // pin 4 supplies power to microSD card breakout and SHT15 sensor
 #define PINON 7
-#define NREADS 16
+#define NREADS 4
 #define ANALOGMAX 8
 #define RtcSquareWavePin 8 // Arduino Pro Mini
 #define maxSDLines2Serial 5
@@ -188,14 +188,15 @@ void loop()
   }
   
   printDataEntry2File(&temperature,&humidity,RData);
-  if (nSDLines2Serial<maxSDLines2Serial){
-    nSDLines2Serial++;
-    Serial.println("");
-    Serial.print("[");
-    Serial.print(nSDLines2Serial);
-    Serial.print("] ");
-    lastSDLine2Serial();
-  }
+  lastSDLine2Serial();
+  // if (nSDLines2Serial<maxSDLines2Serial){
+  //   nSDLines2Serial++;
+  //   Serial.println("");
+  //   Serial.print("[");
+  //   Serial.print(nSDLines2Serial);
+  //   Serial.print("] ");
+  //   lastSDLine2Serial();
+  // }
   
   sd.end();
   delay(1);
